@@ -68,10 +68,9 @@ export function TestimonialsSection() {
           WHY JOIN US?
         </h2>
         <p className="mt-4 max-w-3xl mx-auto text-center text-gray-600">
-          People are using Peersview to connect with like-minded peers, support
-          each other, showcase themselves to potential employers, discover
-          unique job opportunities, and develop their employability and career
-          preparedness.
+          Peersview provides the opportunity for you to join one of the thriving
+          family practices and hospitals we represent across Canada, Australia
+          and The Middle East.
         </p>
 
         <div className="mt-14 max-w-3xl mx-auto bg-white border border-gray-100 rounded-2xl p-8 md:p-10 shadow-sm relative">

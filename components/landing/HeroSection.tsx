@@ -8,22 +8,24 @@ export function HeroSection() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Text column */}
           <div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary leading-tight">
+            {/* <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary leading-tight">
               The Talent Discovery Network
+            </h1> */}
+            <h1 className="mt-6 text-lg md:text-xl text-gray-700 font-bold text-primary leading-tight">
+              Connecting medical professionals with job opportunities in Canada,
+              Australia and the Middle East.
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-gray-700">
-              Connecting graduates and medical professionals with job
-              opportunities
-            </p>
 
             <dl className="mt-10 grid grid-cols-2 gap-6 text-gray-900">
-              <div>
+              {/* <div>
                 <dt className="text-3xl md:text-4xl font-bold">20,000+</dt>
                 <dd className="text-base text-gray-600">Members</dd>
-              </div>
+              </div> */}
               <div>
                 <dt className="text-3xl md:text-4xl font-bold">5,000+</dt>
-                <dd className="text-base text-gray-600">Jobs and Internships</dd>
+                <dd className="text-base text-gray-600">
+                  Jobs and Internships
+                </dd>
               </div>
             </dl>
 
