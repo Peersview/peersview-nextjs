@@ -6,7 +6,6 @@ import { Navbar } from "@/components/landing/Navbar";
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { auth } from "@/lib/auth";
 import { getCompaniesByUser } from "@/services/company.service";
-import { getDistinctProvinceOptions } from "@/services/job.service";
 import { cloudinaryUrl } from "@/lib/cloudinary";
 
 export default async function AddCompanyPage() {
@@ -18,10 +17,7 @@ export default async function AddCompanyPage() {
     redirect("/");
   }
 
-  const [existing, provinceOptions] = await Promise.all([
-    getCompaniesByUser(session.user.id),
-    getDistinctProvinceOptions(),
-  ]);
+  const existing = await getCompaniesByUser(session.user.id);
 
   return (
     <>
@@ -37,7 +33,7 @@ export default async function AddCompanyPage() {
           </p>
 
           <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-10">
-            <CompanyForm provinceOptions={provinceOptions} />
+            <CompanyForm />
           </div>
 
           {existing.length > 0 && (

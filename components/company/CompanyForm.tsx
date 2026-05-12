@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,34 +12,27 @@ import {
 
 type CompanyFormValues = z.input<typeof createCompanySchema>;
 import { createCompanyAction, updateCompanyAction } from "@/app/actions/company";
-import { fetchCityOptionsAction } from "@/app/actions/jobs";
 import { CloudinaryUploader } from "@/components/ui/CloudinaryUploader";
 import { skillCategories } from "@/data/skills-data";
+import { CA_PROVINCE_NAMES, getCityOptionsForProvince } from "@/lib/canadaLocations";
 import type { ICompany } from "@/types";
 
 interface CompanyFormProps {
   /** When provided the form is in edit mode */
   company?: ICompany;
-  /** Province options list (passed from server) */
-  provinceOptions: string[];
 }
 
-export function CompanyForm({ company, provinceOptions }: CompanyFormProps) {
+export function CompanyForm({ company }: CompanyFormProps) {
   const router = useRouter();
   const isEdit = !!company;
   const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  // Seed with the current city so the select shows a value immediately while
-  // the full list loads asynchronously.
-  const [cityOptions, setCityOptions] = useState<string[]>(
-    company?.city ? [company.city] : [],
-  );
-  const [loadingCities, setLoadingCities] = useState(false);
 
   const {
     register,
     control,
     handleSubmit,
+    setValue,
     watch,
     reset,
     formState: { errors, isSubmitting },
@@ -57,28 +50,12 @@ export function CompanyForm({ company, provinceOptions }: CompanyFormProps) {
   });
 
   const selectedProvince = watch("province");
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!selectedProvince) {
-      setCityOptions([]);
-      return;
-    }
-    setLoadingCities(true);
-    fetchCityOptionsAction(selectedProvince)
-      .then((cities) => {
-        if (!cancelled) setCityOptions(cities);
-      })
-      .catch(() => {
-        if (!cancelled) setCityOptions([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingCities(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedProvince]);
+  const selectedCity = watch("city");
+  const cityOptions = useMemo(
+    () => getCityOptionsForProvince(selectedProvince, selectedCity),
+    [selectedProvince, selectedCity],
+  );
+  const provinceField = register("province");
 
   async function onSubmit(values: CreateCompanyInput) {
     setFormError(null);
@@ -140,11 +117,15 @@ export function CompanyForm({ company, provinceOptions }: CompanyFormProps) {
       <div className="grid sm:grid-cols-2 gap-5">
         <Field label="Province" error={errors.province?.message}>
           <select
-            {...register("province")}
+            {...provinceField}
+            onChange={(e) => {
+              provinceField.onChange(e);
+              setValue("city", "");
+            }}
             className="form-input"
           >
             <option value="">Select province</option>
-            {provinceOptions.map((p) => (
+            {CA_PROVINCE_NAMES.map((p) => (
               <option key={p} value={p}>
                 {p}
               </option>
@@ -156,16 +137,14 @@ export function CompanyForm({ company, provinceOptions }: CompanyFormProps) {
           <select
             {...register("city")}
             className="form-input"
-            disabled={!selectedProvince || loadingCities}
+            disabled={!selectedProvince}
           >
             <option value="">
               {!selectedProvince
                 ? "Select province first"
-                : loadingCities
-                  ? "Loading..."
-                  : cityOptions.length === 0
-                    ? "No cities found"
-                    : "Select city"}
+                : cityOptions.length === 0
+                  ? "No cities found"
+                  : "Select city"}
             </option>
             {cityOptions.map((c) => (
               <option key={c} value={c}>

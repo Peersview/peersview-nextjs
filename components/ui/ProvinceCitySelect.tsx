@@ -1,16 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useController } from "react-hook-form";
 import type { Control, FieldValues, Path } from "react-hook-form";
-import { State } from "country-state-city";
-import { fetchCityOptionsAction } from "@/app/actions/jobs";
-
-// Province list from country-state-city, but we store the full NAME in DB.
-const CA_PROVINCES = State.getStatesOfCountry("CA").map((p) => ({
-  name: p.name,     // stored in DB  e.g. "Ontario"
-  isoCode: p.isoCode, // used only for display ordering
-}));
+import { CA_PROVINCES, getCityOptionsForProvince } from "@/lib/canadaLocations";
 
 interface ProvinceCitySelectProps<T extends FieldValues> {
   control: Control<T>;
@@ -29,28 +21,19 @@ export function ProvinceCitySelect<T extends FieldValues>({
 }: ProvinceCitySelectProps<T>) {
   const { field: provinceCtrl } = useController({ control, name: provinceField });
   const { field: cityCtrl } = useController({ control, name: cityField });
+  const {
+    ref: provinceRef,
+    value: provinceValue,
+    onChange: onProvinceChange,
+    ...provinceSelectProps
+  } = provinceCtrl;
 
-  const [cityOptions, setCityOptions] = useState<string[]>([]);
-  const [loadingCities, setLoadingCities] = useState(false);
-
-  const provinceName = provinceCtrl.value as string;
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!provinceName) {
-      setCityOptions([]);
-      return;
-    }
-    setLoadingCities(true);
-    fetchCityOptionsAction(provinceName)
-      .then((cities) => { if (!cancelled) setCityOptions(cities); })
-      .catch(() => { if (!cancelled) setCityOptions([]); })
-      .finally(() => { if (!cancelled) setLoadingCities(false); });
-    return () => { cancelled = true; };
-  }, [provinceName]);
+  const provinceName = provinceValue as string;
+  const cityValue = cityCtrl.value as string;
+  const cityOptions = getCityOptionsForProvince(provinceName, cityValue);
 
   function handleProvinceChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    provinceCtrl.onChange(e.target.value);
+    onProvinceChange(e.target.value);
     cityCtrl.onChange("");
   }
 
@@ -58,10 +41,9 @@ export function ProvinceCitySelect<T extends FieldValues>({
     <>
       <SelectField label="Province" error={provinceError}>
         <select
-          ref={provinceCtrl.ref}
-          name={provinceCtrl.name}
+          {...provinceSelectProps}
+          ref={provinceRef}
           value={provinceName}
-          onBlur={provinceCtrl.onBlur}
           onChange={handleProvinceChange}
           className="form-input"
         >
@@ -77,18 +59,16 @@ export function ProvinceCitySelect<T extends FieldValues>({
       <SelectField label="City" error={cityError}>
         <select
           {...cityCtrl}
-          value={cityCtrl.value as string}
+          value={cityValue}
           className="form-input"
-          disabled={!provinceName || loadingCities}
+          disabled={!provinceName}
         >
           <option value="">
             {!provinceName
               ? "Select a province first"
-              : loadingCities
-                ? "Loading cities…"
-                : cityOptions.length === 0
-                  ? "No cities found"
-                  : "Select a city"}
+              : cityOptions.length === 0
+                ? "No cities found"
+                : "Select a city"}
           </option>
           {cityOptions.map((c) => (
             <option key={c} value={c}>

@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Filter, X } from "lucide-react";
 import { skillCategories } from "@/data/skills-data";
-import { fetchCityOptionsAction } from "@/app/actions/jobs";
+import { CA_PROVINCE_NAMES, getCityOptionsForProvince } from "@/lib/canadaLocations";
 
 const JOB_TYPES = [
   { value: "full-time", label: "Full-Time" },
@@ -14,11 +14,7 @@ const JOB_TYPES = [
   { value: "co-op", label: "Co-op" },
 ];
 
-interface JobFiltersProps {
-  provinceOptions?: string[];
-}
-
-export function JobFilters({ provinceOptions = [] }: JobFiltersProps) {
+export function JobFilters() {
   const router = useRouter();
   const params = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -37,31 +33,10 @@ export function JobFilters({ provinceOptions = [] }: JobFiltersProps) {
   );
 
   const [draft, setDraft] = useState(current);
-  const [cityOptions, setCityOptions] = useState<string[]>([]);
-  const [loadingCities, setLoadingCities] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!draft.province) {
-      setCityOptions([]);
-      return;
-    }
-    setLoadingCities(true);
-    fetchCityOptionsAction(draft.province)
-      .then((cities) => {
-        if (!cancelled) setCityOptions(cities);
-      })
-      .catch((err) => {
-        console.error("[filters] failed to load cities:", err);
-        if (!cancelled) setCityOptions([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingCities(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [draft.province]);
+  const cityOptions = useMemo(
+    () => getCityOptionsForProvince(draft.province, draft.city),
+    [draft.city, draft.province],
+  );
 
   function update<K extends keyof typeof draft>(
     key: K,
@@ -170,7 +145,7 @@ export function JobFilters({ provinceOptions = [] }: JobFiltersProps) {
                   }}
                 >
                   <option value="">Any province</option>
-                  {provinceOptions.map((p) => (
+                  {CA_PROVINCE_NAMES.map((p) => (
                     <option key={p} value={p}>
                       {p}
                     </option>
@@ -183,16 +158,14 @@ export function JobFilters({ provinceOptions = [] }: JobFiltersProps) {
                   className="form-input"
                   value={draft.city}
                   onChange={(e) => update("city", e.target.value)}
-                  disabled={!draft.province || loadingCities}
+                  disabled={!draft.province}
                 >
                   <option value="">
                     {!draft.province
                       ? "Select a province first"
-                      : loadingCities
-                        ? "Loading cities..."
-                        : cityOptions.length === 0
-                          ? "No cities found"
-                          : "Any city"}
+                      : cityOptions.length === 0
+                        ? "No cities found"
+                        : "Any city"}
                   </option>
                   {cityOptions.map((c) => (
                     <option key={c} value={c}>

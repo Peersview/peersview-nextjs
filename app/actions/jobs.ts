@@ -5,7 +5,6 @@ import { auth } from "@/lib/auth";
 import { createJobSchema, type JobFilters } from "@/schemas/job.schema";
 import {
   createJob,
-  getDistinctCityOptions,
   getJobById,
   getJobs,
   getJobsPaginated,
@@ -16,12 +15,6 @@ import type { ActionResult, IJob } from "@/types";
 
 export async function fetchJobsAction(filters?: JobFilters): Promise<IJob[]> {
   return getJobs(filters ?? {});
-}
-
-export async function fetchCityOptionsAction(
-  province?: string,
-): Promise<string[]> {
-  return getDistinctCityOptions(province);
 }
 
 export async function fetchJobsPageAction(

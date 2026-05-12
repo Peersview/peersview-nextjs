@@ -4,7 +4,6 @@ import { Navbar } from "@/components/landing/Navbar";
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { auth } from "@/lib/auth";
 import { getCompanyById } from "@/services/company.service";
-import { getDistinctProvinceOptions } from "@/services/job.service";
 
 interface EditCompanyPageProps {
   params: Promise<{ id: string }>;
@@ -22,10 +21,7 @@ export default async function EditCompanyPage({
     redirect("/");
   }
 
-  const [company, provinceOptions] = await Promise.all([
-    getCompanyById(id),
-    getDistinctProvinceOptions(),
-  ]);
+  const company = await getCompanyById(id);
 
   if (!company) notFound();
   if (company.userId !== session.user.id) redirect("/company/add");
@@ -43,7 +39,7 @@ export default async function EditCompanyPage({
           </p>
 
           <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-10">
-            <CompanyForm company={company} provinceOptions={provinceOptions} />
+            <CompanyForm company={company} />
           </div>
         </div>
       </main>

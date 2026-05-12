@@ -6,10 +6,7 @@ import { JobFilters } from "@/components/jobs/JobFilters";
 import { JobSearchBar } from "@/components/jobs/JobSearchBar";
 import { JobsList } from "@/components/jobs/JobsList";
 import { auth } from "@/lib/auth";
-import {
-  getDistinctProvinceOptions,
-  getJobsPaginated,
-} from "@/services/job.service";
+import { getJobsPaginated } from "@/services/job.service";
 import { getSavedJobIds } from "@/services/savedJob.service";
 import type { JobFilters as JobFiltersType, JobType } from "@/schemas/job.schema";
 
@@ -95,12 +92,11 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
     workAuth: sp.workAuth === "1" || undefined,
   };
 
-  const [paginated, savedIds, provinceOptions] = await Promise.all([
+  const [paginated, savedIds] = await Promise.all([
     getJobsPaginated(filters, { page: 1, limit: PAGE_SIZE }),
     session?.user?.id
       ? getSavedJobIds(session.user.id)
       : Promise.resolve(new Set<string>()),
-    getDistinctProvinceOptions(),
   ]);
 
   const isEmployer = session?.user?.role === "employer";
@@ -125,7 +121,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
             <div className="flex-1">
               <JobSearchBar />
             </div>
-            <JobFilters provinceOptions={provinceOptions} />
+            <JobFilters />
           </div>
 
           <div className="mt-10">
